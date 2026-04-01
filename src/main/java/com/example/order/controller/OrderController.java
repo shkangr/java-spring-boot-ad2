@@ -5,6 +5,9 @@ import com.example.order.dto.OrderResponse;
 import com.example.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,11 +48,13 @@ public class OrderController {
     }
 
     /**
-     * Get all orders
+     * Get all orders (paginated)
+     * e.g. GET /api/orders?page=0&size=10
      */
     @GetMapping
-    public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        return ResponseEntity.ok(orderService.findAllOrders());
+    public ResponseEntity<Page<OrderResponse>> getAllOrders(
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(orderService.findOrdersPaged(pageable));
     }
 
     /**
