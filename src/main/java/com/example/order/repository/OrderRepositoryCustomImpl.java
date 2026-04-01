@@ -3,6 +3,9 @@ package com.example.order.repository;
 import com.example.order.domain.Order;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -60,5 +63,24 @@ public class OrderRepositoryCustomImpl implements OrderRepositoryCustom {
                 .join(order.member, member).fetchJoin()
                 .where(order.member.id.eq(memberId))
                 .fetch();
+    }
+
+    @Override
+    public Page<Order> findAllWithMember(Pageable pageable) {
+        // Content query: fetch join Member (ToOne) + offset/limit
+        List<Order> content = queryFactory
+                .selectFrom(order)
+                .join(order.member, member).fetchJoin()
+                .orderBy(order.id.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // Count query: separate for performance (no join needed)
+        var countQuery = queryFactory
+                .select(order.count())
+                .from(order);
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 }

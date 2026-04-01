@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,6 +87,16 @@ public class OrderService {
         return orderRepository.findAllWithMemberAndOrderItems().stream()
                 .map(OrderResponse::new)
                 .toList();
+    }
+
+    /**
+     * Find orders with pagination
+     * - Member: fetch join (ToOne, safe with pagination)
+     * - OrderItems + Product: loaded via batch_fetch_size (ToMany, unsafe with pagination)
+     */
+    public Page<OrderResponse> findOrdersPaged(Pageable pageable) {
+        return orderRepository.findAllWithMember(pageable)
+                .map(OrderResponse::new);
     }
 
     /**
